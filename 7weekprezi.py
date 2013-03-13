@@ -78,9 +78,9 @@ class ScoreBoard():
         self.rect = self.rect.move(300,20)
 
     def get_winner(self):
-        if score1 > score2:
+        if self.score1 > self.score2:
             return 1
-        elif score2 > score1:
+        elif self.score2 > self.score1:
             return 2
         else:
             return 0
@@ -127,33 +127,111 @@ class CatMouse():
 
 
 class Background():
-    def __init__(self, image):
-        self.image = pygame.image.load(image).convert()
-        self.rect = background.get_rect()
+    def __init__(self, imagefile):
+        self.image = pygame.image.load(imagefile).convert()
+        self.rect = self.image.get_rect()
 
-    def change(self, image):
-        self.image = pygame.image.load(image).convert()
+    def change(self, imagefile):
+        self.image = pygame.image.load(imagefile).convert()
+        self.rect = self.image.get_rect()
 
 
-class Presentation():
-    def __init__(self, screen, scoreboard):
+class Slide():
+    def __init__(self, screen):
+        # screen
+        self.screen = screen
+
         # players
         player1image = pygame.image.load('pics/player1.png').convert()
         player1altimage = pygame.image.load('pics/altplayer1.png').convert()
         player2image = pygame.image.load('pics/player2.png').convert()
         player2altimage = pygame.image.load('pics/altplayer2.png').convert()
         self.player1 = PlayerObject('1', player1image, player1altimage, (0, 0))
-        selfplayer2 = PlayerObject('2', player2image, player2altimage, (590, 455))
+        self.player2 = PlayerObject('2', player2image, player2altimage, (590, 455))
+
         # background
         self.background = Background('pics/background.png')
-        # scoreboard
+
+        # local scoreboard
         self.scoreboard = ScoreBoard(0, 0)
 
-    def play(self):
-        pass
+        # draw players and background to the screen
+        screen.blit(self.background.image, (0, 0))
+        screen.blit(self.scoreboard.image, self.scoreboard.rect)
+        pygame.display.update()
 
-# run
-if __name__ == '__main__':
+        # init game1
+        self.game = CatMouse(self.player1, self.player2, self.scoreboard)
+
+        # init clock
+        self.clock = pygame.time.Clock()
+
+        # counter
+        self.counter = Countdowner()
+        self.TIMECOUNTDOWN = USEREVENT + 1
+        pygame.time.set_timer(self.TIMECOUNTDOWN, 1000)
+        self.running = True
+
+
+    def play(self):
+        while self.running:
+            # 60fps FTW
+            self.clock.tick(60)
+
+            # event handling
+            if pygame.event.get(self.TIMECOUNTDOWN):
+                self.counter.refresh()
+
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    sys.exit()
+                elif event.type == KEYDOWN:
+                    if event.key == K_ESCAPE:
+                        self.running = False
+                    # player 1
+                    elif event.key == K_UP:
+                        self.player1.moveup()
+                    elif event.key == K_DOWN:
+                        self.player1.movedown()
+                    elif event.key == K_LEFT:
+                        self.player1.moveleft()
+                    elif event.key == K_RIGHT:
+                        self.player1.moveright()
+                    # player 2
+                    if event.key == K_w:
+                        self.player2.moveup()
+                    elif event.key == K_s:
+                        self.player2.movedown()
+                    elif event.key == K_a:
+                        self.player2.moveleft()
+                    elif event.key == K_d:
+                        self.player2.moveright()
+                elif event.type == KEYUP:
+                    if event.key in (K_UP, K_LEFT, K_RIGHT, K_DOWN):
+                        self.player1.reinit()
+                    if event.key in (K_w, K_s, K_a, K_d):
+                        self.player2.reinit()
+
+            # redraw
+            self.screen.blit(self.background.image, self.player1.rect, self.player1.rect)
+            self.screen.blit(self.background.image, self.player2.rect, self.player2.rect)
+            self.screen.blit(self.background.image, self.scoreboard.rect, self.scoreboard.rect)
+            self.screen.blit(self.background.image, self.counter.rect, self.counter.rect)
+            self.player1.update()
+            self.player2.update()
+            if self.player1.rect.colliderect(self.player2.rect) or self.counter.time == 0:
+                self.game.catched()
+                self.counter.refresh()
+            self.screen.blit(self.player1.image, self.player1.rect)
+            self.screen.blit(self.player2.image, self.player2.rect)
+            self.screen.blit(self.scoreboard.image, self.scoreboard.rect)
+            self.screen.blit(self.counter.image, self.counter.rect)
+            pygame.display.update()
+
+        return self.scoreboard.get_winner()
+
+
+def main():
     # init
     # pygame
     pygame.init()
@@ -165,76 +243,17 @@ if __name__ == '__main__':
     # screen
     screen = pygame.display.set_mode((640, 480))
 
+    # scoreboard
+    overall_scoreboard = ScoreBoard(0, 0)
 
-    # draw players and background to the screen
-    screen.blit(background.image, (0, 0))
-    screen.blit(scoreboard.image, scoreboard.rect)
-    pygame.display.update()
+    # init presentation
+    slide1 = Slide(screen)
+    slide1winner = slide1.play()
+    if not slide1winner == 0:
+        overall_scoreboard.increase(slide1winner)
 
-    # init game1
-    game = CatMouse(player1, player2, scoreboard)
+    print overall_scoreboard.get_winner()
 
-    # init clock
-    clock = pygame.time.Clock()
-
-    # counter
-    counter = Countdowner()
-    TIMECOUNTDOWN = USEREVENT + 1
-    pygame.time.set_timer(TIMECOUNTDOWN, 1000)
-    running = True
-
-    while running:
-        # 60fps FTW
-        clock.tick(60)
-
-        # store rects which needs to be redrawn
-        dirty_rect = []
-        # event handling
-        if pygame.event.get(TIMECOUNTDOWN):
-            counter.refresh()
-
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                sys.exit()
-            elif event.type == KEYDOWN:
-                if event.key == K_ESCAPE:
-                    running = False
-                # player 1
-                elif event.key == K_UP:
-                    player1.moveup()
-                elif event.key == K_DOWN:
-                    player1.movedown()
-                elif event.key == K_LEFT:
-                    player1.moveleft()
-                elif event.key == K_RIGHT:
-                    player1.moveright()
-                # player 2
-                if event.key == K_w:
-                    player2.moveup()
-                elif event.key == K_s:
-                    player2.movedown()
-                elif event.key == K_a:
-                    player2.moveleft()
-                elif event.key == K_d:
-                    player2.moveright()
-            elif event.type == KEYUP:
-                if event.key in (K_UP, K_LEFT, K_RIGHT, K_DOWN):
-                    player1.reinit()
-                if event.key in (K_w, K_s, K_a, K_d):
-                    player2.reinit()
-
-        # redraw
-        screen.blit(background.image, player1.rect, player1.rect)
-        screen.blit(background.image, player2.rect, player2.rect)
-        screen.blit(background.image, scoreboard.rect, scoreboard.rect)
-        screen.blit(background.image, counter.rect, counter.rect)
-        player1.update()
-        player2.update()
-        if player1.rect.colliderect(player2.rect) or counter.time == 0:
-            game.catched()
-            counter.refresh()
-        screen.blit(player1.image, player1.rect)
-        screen.blit(player2.image, player2.rect)
-        screen.blit(scoreboard.image, scoreboard.rect)
-        screen.blit(counter.image, counter.rect)
-        pygame.display.update() #update(dirty_rect)
+# run
+if __name__ == '__main__':
+    main()
