@@ -3,7 +3,6 @@
 import sys
 import pygame
 import random
-import time
 from pygame.locals import *
 from common import *
 
@@ -143,7 +142,7 @@ class Slide2(Slide):
     def __init__(self, screen):
         # screen
         self.screen = screen
-
+        pygame.display.init()
         # players
         player1image = pygame.image.load('pics/player1.png').convert_alpha()
         player1altimage = pygame.image.load('pics/altplayer1.png').convert_alpha()
@@ -153,15 +152,16 @@ class Slide2(Slide):
         self.player2 = InvaderPlayer('2', player2image, player2altimage, (590, 455))
 
         # background
-        self.background = Background('pics/background.png')
+        self.background = Background('pics/slide2.png')
 
-        # local scoreboard
+        # local scoreboards
         self.scoreboard = ScoreBoard(0, 0)
+        self.overall_scoreboard = ScoreBoard(0, 0, (500, 20), (0, 255, 0))
 
         # draw players and background to the screen
-        screen.blit(self.background.image, (0, 0))
+        screen.blit(self.background.image, (0, 0), self.background.rect)
         screen.blit(self.scoreboard.image, self.scoreboard.rect)
-        pygame.display.update()
+        pygame.display.update([self.background.rect, self.scoreboard.rect])
 
         # init game
         self.game = Invaders(self.screen, self.player1, self.player2, self.scoreboard, 10)
@@ -170,7 +170,7 @@ class Slide2(Slide):
         self.clock = pygame.time.Clock()
 
         # counter
-        self.counter = Countdowner(100)
+        self.counter = Countdowner(99)
         self.TIMECOUNTDOWN = USEREVENT + 1
         pygame.time.set_timer(self.TIMECOUNTDOWN, 1000)
         self.running = True
@@ -193,9 +193,9 @@ class Slide2(Slide):
                         self.running = False
                     # player 1
                     elif event.key == K_UP:
-                        self.player1.moveup()
+                        self.player1.moveright()
                     elif event.key == K_DOWN:
-                        self.player1.movedown()
+                        self.player1.moveleft()
                     elif event.key == K_LEFT:
                         self.player1.moveleft()
                     elif event.key == K_RIGHT:
@@ -204,9 +204,9 @@ class Slide2(Slide):
                         self.game.playershoot(self.player1, self.player1.shoot())
                     # player 2
                     if event.key == K_w:
-                        self.player2.moveup()
+                        self.player2.moveright()
                     elif event.key == K_s:
-                        self.player2.movedown()
+                        self.player2.moveleft()
                     elif event.key == K_a:
                         self.player2.moveleft()
                     elif event.key == K_d:
@@ -220,11 +220,12 @@ class Slide2(Slide):
                     if event.key in (K_w, K_s, K_a, K_d):
                         self.player2.reinit()
 
-            # move players
-             # redraw
+
+            # redraw screen
             self.screen.blit(self.background.image, self.player1.rect, self.player1.rect)
             self.screen.blit(self.background.image, self.player2.rect, self.player2.rect)
             self.screen.blit(self.background.image, self.scoreboard.rect, self.scoreboard.rect)
+            self.screen.blit(self.background.image, self.overall_scoreboard.rect, self.overall_scoreboard.rect)
             self.screen.blit(self.background.image, self.counter.rect, self.counter.rect)
             for enemy in self.game.enemies:
                 self.screen.blit(self.background.image, enemy.rect, enemy.rect)
@@ -239,10 +240,12 @@ class Slide2(Slide):
             self.game.refresh()
             self.screen.blit(self.player1.image, self.player1.rect)
             self.screen.blit(self.player2.image, self.player2.rect)
+            self.screen.blit(self.overall_scoreboard.image, self.overall_scoreboard.rect)
             self.screen.blit(self.scoreboard.image, self.scoreboard.rect)
             self.screen.blit(self.counter.image, self.counter.rect)
             pygame.display.update()
             if self.counter.time == 0:
-                self.running = False
+                self.overall_scoreboard.increase(self.scoreboard.get_winner())
+                self.scoreboard.reset()
 
-        return self.scoreboard.get_winner()    
+        return self.overall_scoreboard.get_winner()    

@@ -22,8 +22,8 @@ class CatMouse():
         self.mouse.swapimage()
         offset1 = (random.randint(-295, 295), random.randint(-227, 227))
         offset2 = (offset1[0] * -1, offset1[1] * -1)
-        self.cat.reposition(offset1)
-        self.mouse.reposition(offset2)
+        self.cat.move(offset1)
+        self.mouse.move(offset2)
         self.cat, self.mouse = self.mouse, self.cat
 
     def timeout(self):
@@ -32,8 +32,8 @@ class CatMouse():
         self.mouse.swapimage()
         offset1 = (random.randint(-295, 295), random.randint(-227, 227))
         offset2 = (offset1[0] * -1, offset1[1] * -1)
-        self.cat.reposition(offset1)
-        self.mouse.reposition(offset2)
+        self.cat.move(offset1)
+        self.mouse.move(offset2)
         self.cat, self.mouse = self.mouse, self.cat
 
 
@@ -51,13 +51,13 @@ class Slide1(Slide):
         self.player2 = PlayerObject('2', player2image, player2altimage, (590, 455))
 
         # background
-        self.background = Background('pics/background.png')
+        self.background = Background('pics/slide1.png')
 
         # local scoreboard
         self.scoreboard = ScoreBoard(0, 0)
 
         # draw players and background to the screen
-        screen.blit(self.background.image, (0, 0))
+        screen.blit(self.background.image, (0, 0), self.background.rect)
         screen.blit(self.scoreboard.image, self.scoreboard.rect)
         pygame.display.update()
 
@@ -113,7 +113,7 @@ class Slide1(Slide):
                     if event.key in (K_w, K_s, K_a, K_d):
                         self.player2.reinit()
 
-            # redraw
+            # redraw screen
             self.screen.blit(self.background.image, self.player1.rect, self.player1.rect)
             self.screen.blit(self.background.image, self.player2.rect, self.player2.rect)
             self.screen.blit(self.background.image, self.scoreboard.rect, self.scoreboard.rect)
