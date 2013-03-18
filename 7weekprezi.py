@@ -26,6 +26,7 @@ def main():
     # screen
     screen = pygame.display.set_mode((640, 480))
     pygame.display.init()
+    pygame.display.toggle_fullscreen()
 
     # scoreboard
     overall_scoreboard = common.ScoreBoard(0, 0)
@@ -62,6 +63,8 @@ def main():
     # play slide 4
     slide_four = slide4.Slide4(screen, overall_scoreboard.get_winner())
     slidewinner = slide_four.play()
+
+    pygame.display.toggle_fullscreen()
 
 # run
 if __name__ == '__main__':

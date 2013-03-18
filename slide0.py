@@ -68,6 +68,8 @@ class Slide0(Slide):
                         self.player1.moveleft()
                     elif event.key == K_RIGHT:
                         self.player1.moveright()
+                    elif event.key == K_RSHIFT:
+                        self.player1.swapimage()
 
                     # player 2
                     if event.key == K_w:
@@ -78,12 +80,18 @@ class Slide0(Slide):
                         self.player2.moveleft()
                     elif event.key == K_d:
                         self.player2.moveright()
+                    elif event.key == K_LSHIFT:
+                        self.player2.swapimage()
 
                 elif event.type == KEYUP:
                     if event.key in (K_UP, K_LEFT, K_RIGHT, K_DOWN):
                         self.player1.reinit()
                     if event.key in (K_w, K_s, K_a, K_d):
                         self.player2.reinit()
+                    if event.key == K_RSHIFT:
+                        self.player1.swapimage()
+                    if event.key == K_LSHIFT:
+                        self.player2.swapimage()
 
 
             if self.player1.rect.colliderect(self.p1caption.rect):
